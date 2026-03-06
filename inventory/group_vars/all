@@ -1,0 +1,76 @@
+---
+cpu_arch: >-
+  {%- if ansible_architecture == "aarch64" -%}
+    arm64
+  {%- elif ansible_architecture == "x86_64" -%}
+    amd64
+  {%- else -%}
+    {{ ansible_architecture }}
+  {%- endif -%}
+os_group: >-
+  {%- if ansible_system == "Darwin" -%}
+    mac
+  {%- elif ansible_system == "Linux" -%}
+    linux
+  {%- else -%}
+    EOSGROUPNA
+  {%- endif -%}
+butane_os_group: >-
+  {%- if os_group == "mac" -%}
+    -darwin
+  {%- elif os_group == "linux" -%}
+  {%- else -%}
+    EBUTANEOSNA
+  {%- endif -%}
+butane_arch: >-
+  {%- if ansible_architecture == "x86_64" -%}
+    amd64
+  {%- elif ansible_architecture == "arm64" -%}
+    aarch64
+  {%- else -%}
+    {{ ansible_architecture }}
+  {%- endif -%}
+
+ocp_worker_count: 3
+ocp_worker_type: "m5.2xlarge"
+ocp_master_count: 3
+ocp_master_type: "m5.2xlarge"
+ocp_az: "us-east-2a"
+ocp_region: "us-east-2"
+ocp_arch: "amd64"
+ocp_vpc_name: "cluster-vpc"
+ocp_domain: "example.com"
+ocp_cluster_name: "test"
+
+ocp_install_template: "../templates/install-config.j2.yaml"
+
+#ocp_ami_id: "ami-0d4a7b7677c0c883f"
+
+openshift_mirror: "https://mirror.openshift.com/pub/openshift-v4"
+ocp_maj_min_version: "{{ ocp_version.split('.')[0] }}.{{ ocp_version.split('.')[1] }}"
+ocp_maj_min_version_dashed: "{{ ocp_maj_min_version | replace('.', '-') }}"
+#basefolder: "{{ '~/ocp' | expanduser }}"
+basefolder: "/home/fedora/ocp"
+ocpfolder: "{{ basefolder }}/ocp_install_files"
+ocp_version: "4.20.15"
+ocp_channel: "ocp"
+oc_bin: "{{ basefolder }}/{{ ocp_version }}/oc"
+butane_ver: "v0.23.0-0"
+butane_url: "{{ openshift_mirror }}/clients/butane/{{ butane_ver }}/butane{{ butane_os_group }}-{{ butane_arch }}"
+butane_bin: "{{ basefolder }}/{{ ocp_version }}/butane"
+virtctl_bin: "{{ basefolder }}/{{ ocp_version }}/virtctl"
+kubeconfig: "{{ ocpfolder }}/auth/kubeconfig"
+gpfsfolder: "{{ basefolder }}/gpfs"
+pullsecret: "{{ lookup('file', '~/.pullsecret.json' | expanduser) }}"
+
+
+
+aws_profile: "default"
+
+
+ssh_private_key_file: "~/.ssh/id_rsa"
+ssh_pubkey: "{{ lookup('file', '~/.ssh/id_rsa.pub' | expanduser) }}"
+ssh_key_name: "ocp-admin"
+bastion_instance_type: "t2.small"
+bastion_ami_image_id: "ami-081f1683735c6b9e8"
+ssh_user: "fedora"

@@ -1,0 +1,108 @@
+---  
+- name: Print out basic starting facts
+  ansible.builtin.debug:
+    msg:
+      Environment:
+        Architecture: "{{ cpu_arch }}"
+        OCP version: "{{ ocp_version }}"
+        OCP channel: "{{ ocp_channel }}"
+        OS: "{{ os_group }}"
+    
+- name: Create mirror folders
+  ansible.builtin.file:
+    path: "{{ basefolder }}/{{ ocp_version }}"
+    state: directory
+    recurse: true
+
+- name: Set OC facts to download bits (Linux)
+  ansible.builtin.set_fact:
+    oc_client_url: "{{ openshift_mirror }}/multi/clients/{{ ocp_channel }}/{{ ocp_version }}/{{ cpu_arch }}/openshift-client-{{ os_group }}.tar.gz"
+    oc_install_url: "{{ openshift_mirror }}/multi/clients/{{ ocp_channel }}/{{ ocp_version }}/{{ cpu_arch }}/openshift-install-{{ os_group }}.tar.gz"
+
+- name: Print URLs
+  ansible.builtin.debug:
+    msg: "URL to be used: {{ oc_client_url }} - {{ oc_install_url }}"
+
+- name: Download oc
+  ansible.builtin.get_url:
+    url: "{{ oc_client_url }}"
+    dest: "{{ basefolder }}/{{ ocp_version }}/openshift-client.tar.gz"
+    mode: "0640"
+  environment:
+    https_proxy: "{{ https_proxy | default('') }}"
+  register: oc_download
+
+- name: Download butane 
+  ansible.builtin.get_url:
+    url: "{{ butane_url }}"
+    dest: "{{ basefolder }}/{{ ocp_version }}/butane"
+    mode: "0755"
+  environment:
+    https_proxy: "{{ https_proxy | default('') }}"
+
+- name: Download openshift-install
+  ansible.builtin.get_url:
+    url: "{{ oc_install_url }}"
+    dest: "{{ basefolder }}/{{ ocp_version }}/openshift-install.tar.gz"
+    mode: "0640"
+  environment:
+    https_proxy: "{{ https_proxy | default('') }}"
+  register: openshift_install_download 
+
+- name: Uncompress oc
+  ansible.builtin.unarchive:
+    src: "{{ basefolder }}/{{ ocp_version }}/openshift-client.tar.gz"
+    dest: "{{ basefolder }}/{{ ocp_version }}"
+    remote_src: true
+    creates: "{{ basefolder }}/{{ ocp_version }}/oc"
+
+- name: Uncompress openshift-install
+  ansible.builtin.unarchive:
+    src: "{{ basefolder }}/{{ ocp_version }}/openshift-install.tar.gz"
+    dest: "{{ basefolder }}/{{ ocp_version }}"
+    remote_src: true
+    creates: "{{ basefolder }}/{{ ocp_version }}/openshift-install"
+
+- name: Ensure oc is executable
+  ansible.builtin.file:
+    path: "{{ basefolder }}/{{ ocp_version }}/oc"
+    mode: "0755"
+    state: file
+
+- name: Ensure openshift-install is executable
+  ansible.builtin.file:
+    path: "{{ basefolder }}/{{ ocp_version }}/openshift-install"
+    mode: "0755"
+    state: file
+
+- name: Symlink oc into /usr/local/bin
+  become: true
+  ansible.builtin.file:
+    src: "{{ basefolder }}/{{ ocp_version }}/oc"
+    dest: "/usr/local/bin/oc"
+    state: link
+    force: true
+
+- name: Symlink openshift-install into /usr/local/bin
+  become: true
+  ansible.builtin.file:
+    src: "{{ basefolder }}/{{ ocp_version }}/openshift-install"
+    dest: "/usr/local/bin/openshift-install"
+    state: link
+    force: true
+
+# - name: Find files to remove
+#   ansible.builtin.find:
+#     paths: "{{ basefolder }}/{{ ocp_version }}"
+#     patterns: 
+#       - "openshift-*.tar.gz"
+#       - "README.md"
+#     recurse: false
+#   register: files_to_remove
+
+# - name: Remove found files
+#   ansible.builtin.file:
+#     path: "{{ item.path }}"
+#     state: absent
+#   loop: "{{ files_to_remove.files }}"
+#   when: files_to_remove.files is defined and files_to_remove.files | length > 0

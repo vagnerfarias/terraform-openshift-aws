@@ -1,0 +1,124 @@
+---
+- name: Prepare OpenShift install artifacts on bastion
+  hosts: all
+  gather_facts: true
+  become: true
+  vars_files:
+    - ../overrides.yml
+  tags:
+    - ocp_prepare
+
+  pre_tasks:
+    - name: Ensure base packages are installed (Fedora)
+      ansible.builtin.dnf:
+        name:
+          - jq
+          - curl
+          - tar
+          - unzip
+          - git
+          - python3
+        state: present
+        update_cache: true
+      when: ansible_facts.os_family == "RedHat"
+
+  tasks:
+    - name: Download OpenShift clients to bastion
+      become: false
+      ansible.builtin.import_tasks: ocp-clients.yml
+
+    - name: Prepare OpenShift install files
+      become: false
+      ansible.builtin.import_tasks: ocp-install-prepare.yml
+
+    - name: Verify openshift-install works
+      become: false
+      ansible.builtin.command: "{{ basefolder }}/{{ ocp_version }}/openshift-install version"
+      register: installer_version
+      changed_when: false
+
+    - name: Verify oc works
+      become: false
+      ansible.builtin.command: "{{ basefolder }}/{{ ocp_version }}/oc version --client"
+      register: oc_version
+      changed_when: false
+
+    - name: Get RHCOS stream metadata
+      become: false    
+      ansible.builtin.command:
+        cmd: "{{ basefolder }}/{{ ocp_version }}/openshift-install coreos print-stream-json"
+      register: rhcos_stream
+      changed_when: false
+
+    - name: Extract RHCOS AMI for region
+      become: false
+      ansible.builtin.set_fact:
+        rhcos_ami_id: "{{ (rhcos_stream.stdout | from_json).architectures.x86_64.images.aws.regions[ocp_region].image }}"
+
+    - name: Generate pre-signed URL for bootstrap.ign
+      become: false
+      ansible.builtin.command:
+        cmd: aws s3 presign s3://{{ ocp_ignition_bucket }}/{{ ocp_ignition_prefix }}/bootstrap.ign --expires-in 604800 --region {{ ocp_region }}
+      register: bootstrap_presign
+      changed_when: false
+
+    - name: Generate pre-signed URL for master.ign
+      become: false
+      ansible.builtin.command:
+        cmd: aws s3 presign s3://{{ ocp_ignition_bucket }}/{{ ocp_ignition_prefix }}/master.ign --expires-in 604800 --region {{ ocp_region }}
+      register: master_presign
+      changed_when: false
+
+    - name: Generate pre-signed URL for worker.ign
+      become: false
+      ansible.builtin.command:
+        cmd: aws s3 presign s3://{{ ocp_ignition_bucket }}/{{ ocp_ignition_prefix }}/worker.ign --expires-in 604800 --region {{ ocp_region }}
+      register: worker_presign
+      changed_when: false
+
+
+    - name: Write infra.env for Terraform consumption (on bastion)
+      become: false
+      ansible.builtin.copy:
+        dest: "{{ ocpfolder }}/infra.env"
+        mode: "0644"
+        content: |
+          OCP_INFRA_ID={{ ocp_infra_id }}
+          OCP_FOLDER={{ ocpfolder }}
+          OCP_VERSION={{ ocp_version }}
+          OCP_CLUSTER_NAME={{ ocp_cluster_name | default('') }}
+          OCP_REGION={{ ocp_region | default('us-east-2') }}
+
+    - name: Summary
+      become: false
+      ansible.builtin.debug:
+        msg:
+          - "Installer: {{ installer_version.stdout }}"
+          - "oc: {{ oc_version.stdout_lines | default([]) }}"
+          - "ocpfolder: {{ ocpfolder }}"
+          - "infraID: {{ ocp_infra_id }}"
+          - "infra.env: {{ ocpfolder }}/infra.env"
+
+    - name: Update generated.auto.tfvars in 00-config
+      become: false
+      delegate_to: localhost
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/../live/dev/00-config/generated.auto.tfvars"
+        mode: "0644"
+        content: |
+          infrastructure_name   = "{{ ocp_infra_id }}"
+          ignition_bucket       = "{{ ocp_ignition_bucket }}"
+          ignition_prefix       = "{{ ocp_ignition_prefix }}"
+          aws_region            = "{{ ocp_region }}"
+          rhcos_ami_id          = "{{ rhcos_ami_id }}"
+          bootstrap_ignition_url = "{{ bootstrap_presign.stdout }}"
+          master_ignition_url    = "{{ master_presign.stdout }}"
+          worker_ignition_url    = "{{ worker_presign.stdout }}"
+
+    - name: Apply 00-config
+      become: false
+      delegate_to: localhost
+      ansible.builtin.command:
+        cmd: terraform apply -auto-approve
+      args:
+        chdir: "{{ playbook_dir }}/../live/dev/00-config"

@@ -1,0 +1,126 @@
+- name: Create working folder
+  tags:
+    - 1_ocp_install
+  ansible.builtin.file:
+    path: "{{ ocpfolder }}"
+    state: directory
+    recurse: true
+
+- name: Does cluster metadata.json exist
+  tags:
+    - 1_ocp_install
+  ansible.builtin.stat:
+    path: "{{ ocpfolder }}/metadata.json"
+  register: metadata_json_file
+
+- name: Template OCP install file
+  tags:
+    - 1_ocp_install
+  ansible.builtin.template:
+    src: "{{ ocp_install_template }}"
+    dest: "{{ ocpfolder }}/install-config.yaml"
+  when: not metadata_json_file.stat.exists
+
+- name: Create installation manifests
+  ansible.builtin.command:
+    cmd: "{{ basefolder }}/{{ ocp_version }}/openshift-install create manifests --dir {{ ocpfolder }}"
+  when: not metadata_json_file.stat.exists
+
+- name: Find Machine API manifests on bastion
+  ansible.builtin.find:
+    paths: "{{ ocpfolder }}/openshift"
+    patterns:
+      - "99_openshift-cluster-api_worker-machineset-*.yaml"
+      - "99_openshift-cluster-api_master-machines-*.yaml"
+      - "99_openshift-machine-api_master-control-plane-machine-set.yaml"
+    file_type: file
+    recurse: false
+  register: machine_api_manifests
+  when: not metadata_json_file.stat.exists
+
+- name: Remove Machine API manifests (UPI)
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ machine_api_manifests.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when:
+    - not metadata_json_file.stat.exists
+    - machine_api_manifests.matched | default(0) | int > 0
+
+- name: Create ignition configs
+  ansible.builtin.shell: |
+    {{ basefolder }}/{{ ocp_version }}/openshift-install create ignition-configs --dir {{ ocpfolder }}    
+  when: not metadata_json_file.stat.exists
+
+- name: Get cluster infrastructure name
+  ansible.builtin.slurp:
+    src: "{{ ocpfolder }}/metadata.json"
+  register: ocp_metadata
+
+- name: Store cluster infrastructure name
+  set_fact: 
+    ocp_infra_id: "{{ (ocp_metadata.content | b64decode | from_json).infraID }}"
+  
+- name: Get control plane ignition
+  ansible.builtin.slurp:
+    src: "{{ ocpfolder }}/master.ign"
+  register: master_ign
+
+- name: Get worker ignition
+  ansible.builtin.slurp:
+    src: "{{ ocpfolder }}/worker.ign"
+  register: worker_ign
+
+- name: Store Certificate Authorities
+  set_fact: 
+    MasterCertificateAuthorities: "{{ (master_ign.content | b64decode | from_json).ignition.security.tls.certificateAuthorities[0].source }}"
+    WorkerCertificateAuthorities: "{{ (worker_ign.content | b64decode | from_json).ignition.security.tls.certificateAuthorities[0].source }}"
+
+## criar bucket e enviar arquivos
+- name: Build ignition bucket name
+  ansible.builtin.set_fact:
+    ocp_ignition_bucket: "ocp-ign-{{ ocp_infra_id }}-{{ ocp_region }}"
+    ocp_ignition_prefix: "ignition"
+
+- name: Ensure boto3 is installed
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - python3-boto3
+      - python3-botocore
+    state: present
+
+- name: Create S3 bucket if not exists
+  amazon.aws.s3_bucket:
+    name: "{{ ocp_ignition_bucket }}"
+    state: present
+    region: "{{ ocp_region }}"
+
+# - name: Enable bucket versioning
+#   amazon.aws.s3_bucket_versioning:
+#     name: "{{ ocp_ignition_bucket }}"
+#     state: enabled
+
+- name: Upload ignition files
+  amazon.aws.s3_object:
+    bucket: "{{ ocp_ignition_bucket }}"
+    object: "{{ ocp_ignition_prefix }}/{{ item }}"
+    src: "{{ ocpfolder }}/{{ item }}"
+    mode: put
+  loop:
+    - bootstrap.ign
+    - master.ign
+    - worker.ign
+
+- name: Create terraform auto.tfvars locally
+  delegate_to: localhost
+  ansible.builtin.copy:
+    dest: "{{ playbook_dir }}/../live/dev/dev.auto.tfvars"
+    mode: "0644"
+    content: |
+      infrastructure_name = "{{ ocp_infra_id }}"
+      ignition_bucket     = "{{ ocp_ignition_bucket }}"
+      ignition_prefix     = "{{ ocp_ignition_prefix }}"
+      aws_region          = "{{ ocp_region }}"
