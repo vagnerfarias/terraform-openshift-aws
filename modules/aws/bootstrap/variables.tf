@@ -1,5 +1,5 @@
 variable "infrastructure_name" { type = string }
-variable "rhcos_ami_id"        { type = string }
+variable "rhcos_image_id"        { type = string }
 variable "bootstrap_ignition_url" { type = string }
 
 variable "subnet_id" { type = string }

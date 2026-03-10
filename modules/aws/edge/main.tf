@@ -137,7 +137,7 @@ resource "aws_route53_zone" "private_cluster_zone" {
 
 # --- Public record: api.<cluster>.<base_domain> -> external NLB ---
 resource "aws_route53_record" "public_api" {
-  zone_id = var.public_hosted_zone_id
+  zone_id = var.public_dns_zone_id
   name    = local.fqdn_api
   type    = "A"
 
@@ -257,7 +257,7 @@ resource "aws_lb_listener" "apps_443" {
 }
 
 resource "aws_route53_record" "public_apps_wildcard" {
-  zone_id = var.public_hosted_zone_id
+  zone_id = var.public_dns_zone_id
   name    = "*.apps.${var.cluster_name}.${var.base_domain}"
   type    = "A"
 

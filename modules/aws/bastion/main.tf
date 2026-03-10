@@ -17,7 +17,7 @@ locals {
 
 # Try to discover Fedora AMI automatically.
 data "aws_ami" "fedora" {
-  count       = var.ami_id == "" ? 1 : 0
+  count       = var.image_id == "" ? 1 : 0
   most_recent = true
 
   owners = ["125523088429"]
@@ -39,7 +39,7 @@ data "aws_ami" "fedora" {
 }
 
 locals {
-  selected_ami = var.ami_id != "" ? var.ami_id : data.aws_ami.fedora[0].id
+  selected_image = var.image_id != "" ? var.image_id : data.aws_ami.fedora[0].id
 }
 
 resource "aws_security_group" "bastion" {
@@ -74,7 +74,7 @@ resource "aws_key_pair" "bastion" {
 }
 
 resource "aws_instance" "bastion" {
-  ami                         = local.selected_ami
+  ami                         = local.selected_image
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.bastion.id]

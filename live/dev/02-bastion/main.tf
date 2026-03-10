@@ -18,7 +18,7 @@ module "bastion" {
   allowed_ssh_cidr = var.allowed_ssh_cidr
   instance_type    = var.instance_type
   root_volume_gb   = var.root_volume_gb
-  ami_id           = var.ami_id
+  image_id         = var.image_id
   key_name         = var.key_name
   public_key_path  = var.public_key_path
   manage_key_pair  = var.manage_key_pair

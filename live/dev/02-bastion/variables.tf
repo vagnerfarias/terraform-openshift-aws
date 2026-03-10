@@ -15,10 +15,10 @@ variable "root_volume_gb" {
   description = "Root volume size (GiB)."
 }
 
-variable "ami_id" {
+variable "image__id" {
   type        = string
   default     = ""
-  description = "Optional: Fedora AMI ID. If empty, Terraform will try to discover the latest Fedora Cloud Base AMI."
+  description = "Optional: Fedora image ID. If empty, Terraform will try to discover the latest Fedora Cloud Base AMI."
 }
 
 variable "tags" {

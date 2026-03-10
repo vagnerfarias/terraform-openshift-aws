@@ -20,7 +20,7 @@ locals {
 }
 
 resource "aws_instance" "bootstrap" {
-  ami                    = var.rhcos_ami_id
+  ami                    = var.rhcos_image_id
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
   vpc_security_group_ids = var.security_group_ids
