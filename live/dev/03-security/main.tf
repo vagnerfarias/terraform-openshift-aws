@@ -1,5 +1,5 @@
 module "security" {
-  source = "../../../modules/security"
+  source = "../../../modules/aws/security"
 
   infrastructure_name = data.terraform_remote_state.config.outputs.infrastructure_name
   vpc_id              = data.terraform_remote_state.network.outputs.vpc_id
