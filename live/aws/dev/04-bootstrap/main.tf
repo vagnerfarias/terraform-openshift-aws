@@ -2,7 +2,7 @@ module "bootstrap" {
   source = "../../../../modules/aws/bootstrap"
 
   infrastructure_name    = data.terraform_remote_state.config.outputs.infrastructure_name
-  rhcos_image_id           = data.terraform_remote_state.config.outputs.rhcos_ami_id
+  rhcos_image_id           = data.terraform_remote_state.config.outputs.rhcos_image_id
   bootstrap_ignition_url = data.terraform_remote_state.config.outputs.bootstrap_ignition_url
 
   subnet_id = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
