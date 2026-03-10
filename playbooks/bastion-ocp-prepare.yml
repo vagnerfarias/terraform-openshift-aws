@@ -50,10 +50,10 @@
       register: rhcos_stream
       changed_when: false
 
-    - name: Extract RHCOS AMI for region
+    - name: Extract RHCOS image ID for region
       become: false
       ansible.builtin.set_fact:
-        rhcos_ami_id: "{{ (rhcos_stream.stdout | from_json).architectures.x86_64.images.aws.regions[ocp_region].image }}"
+        rhcos_image_id: "{{ (rhcos_stream.stdout | from_json).architectures.x86_64.images.aws.regions[ocp_region].image }}"
 
     - name: Generate pre-signed URL for bootstrap.ign
       become: false
@@ -109,8 +109,8 @@
           infrastructure_name   = "{{ ocp_infra_id }}"
           ignition_bucket       = "{{ ocp_ignition_bucket }}"
           ignition_prefix       = "{{ ocp_ignition_prefix }}"
-          aws_region            = "{{ ocp_region }}"
-          rhcos_ami_id          = "{{ rhcos_ami_id }}"
+          cloud_region            = "{{ ocp_region }}"
+          rhcos_image_id          = "{{ rhcos_image_id }}"
           bootstrap_ignition_url = "{{ bootstrap_presign.stdout }}"
           master_ignition_url    = "{{ master_presign.stdout }}"
           worker_ignition_url    = "{{ worker_presign.stdout }}"

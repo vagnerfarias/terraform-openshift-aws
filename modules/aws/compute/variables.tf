@@ -2,7 +2,7 @@ variable "infrastructure_name" {
   type = string
 }
 
-variable "rhcos_ami_id" {
+variable "rhcos_image_id" {
   type = string
 }
 

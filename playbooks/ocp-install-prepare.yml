@@ -123,4 +123,4 @@
       infrastructure_name = "{{ ocp_infra_id }}"
       ignition_bucket     = "{{ ocp_ignition_bucket }}"
       ignition_prefix     = "{{ ocp_ignition_prefix }}"
-      aws_region          = "{{ ocp_region }}"
+      cloud_region          = "{{ ocp_region }}"
