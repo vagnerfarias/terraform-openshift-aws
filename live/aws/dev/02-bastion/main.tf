@@ -10,7 +10,7 @@ locals {
 }
 
 module "bastion" {
-  source = "../../../modules/aws/bastion"
+  source = "../../../../modules/aws/bastion"
 
   name             = "ocp-bastion"
   vpc_id           = data.terraform_remote_state.network.outputs.vpc_id

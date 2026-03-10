@@ -1,5 +1,5 @@
 module "edge" {
-  source = "../../../modules/aws/edge"
+  source = "../../../../modules/aws/edge"
 
   cluster_name          = data.terraform_remote_state.config.outputs.cluster_name
   base_domain           = data.terraform_remote_state.config.outputs.base_domain

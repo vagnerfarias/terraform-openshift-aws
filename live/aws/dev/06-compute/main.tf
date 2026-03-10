@@ -1,5 +1,5 @@
 module "compute" {
-  source = "../../../modules/aws/compute"
+  source = "../../../../modules/aws/compute"
 
   infrastructure_name = data.terraform_remote_state.config.outputs.infrastructure_name
   rhcos_image_id        = data.terraform_remote_state.config.outputs.rhcos_image_id

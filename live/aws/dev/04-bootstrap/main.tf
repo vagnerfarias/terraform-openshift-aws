@@ -1,5 +1,5 @@
 module "bootstrap" {
-  source = "../../../modules/aws/bootstrap"
+  source = "../../../../modules/aws/bootstrap"
 
   infrastructure_name    = data.terraform_remote_state.config.outputs.infrastructure_name
   rhcos_image_id           = data.terraform_remote_state.config.outputs.rhcos_ami_id
