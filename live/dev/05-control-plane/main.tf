@@ -1,5 +1,5 @@
 module "control_plane" {
-  source = "../../../modules/control-plane"
+  source = "../../../modules/aws/control-plane"
 
   infrastructure_name = data.terraform_remote_state.config.outputs.infrastructure_name
   rhcos_ami_id        = data.terraform_remote_state.config.outputs.rhcos_ami_id
