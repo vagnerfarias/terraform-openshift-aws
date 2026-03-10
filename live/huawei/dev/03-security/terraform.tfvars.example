@@ -1,0 +1,18 @@
+allowed_ssh_cidr = "203.0.113.10/32"
+
+# shared | dedicated
+elb_mode = "shared"
+
+# Used only when elb_mode = "shared"
+elb_shared_source_cidrs = [
+  "100.125.0.0/16",
+  "100.126.0.0/16"
+]
+
+# Used only when elb_mode = "dedicated"
+elb_backend_subnet_cidr = ""
+
+tags = {
+  Project = "ocp-huawei"
+  Env     = "dev"
+}
