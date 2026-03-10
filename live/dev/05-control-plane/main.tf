@@ -2,7 +2,7 @@ module "control_plane" {
   source = "../../../modules/aws/control-plane"
 
   infrastructure_name = data.terraform_remote_state.config.outputs.infrastructure_name
-  rhcos_ami_id        = data.terraform_remote_state.config.outputs.rhcos_ami_id
+  rhcos_image_id        = data.terraform_remote_state.config.outputs.rhcos_image_id
   master_ignition_url = data.terraform_remote_state.config.outputs.master_ignition_url
 
   subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids

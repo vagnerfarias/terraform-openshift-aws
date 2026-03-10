@@ -5,20 +5,20 @@ variable "cluster_name" {
 
 variable "base_domain" {
   type        = string
-  description = "Public base domain hosted zone (e.g. sandbox295.opentlc.com)"
+  description = "Public base domain hosted zone (e.g. example.com)"
 }
 
-variable "public_hosted_zone_id" {
+variable "public_dns_zone_id" {
   type        = string
   description = "Route53 public hosted zone ID for base_domain."
 }
 
-variable "aws_region" {
+variable "cloud_region" {
   type        = string
   description = "AWS region (e.g. us-east-2)."
 }
 
-# Dinâmicas (preenchidas automaticamente pelo Ansible)
+# Dynamic (from Ansible playbook)
 variable "infrastructure_name" {
   type        = string
   description = "OpenShift infraID from metadata.json"
@@ -37,9 +37,9 @@ variable "ignition_prefix" {
   default     = "ignition"
 }
 
-variable "rhcos_ami_id" {
+variable "rhcos_image_id" {
   type        = string
-  description = "RHCOS AMI ID for the cluster version/region"
+  description = "RHCOS image ID for the cluster version/region"
   default     = ""
 }
 
