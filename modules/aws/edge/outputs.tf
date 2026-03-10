@@ -1,4 +1,4 @@
-output "private_hosted_zone_id" {
+output "private_dns_zone_id" {
   value = aws_route53_zone.private_cluster_zone.zone_id
 }
 

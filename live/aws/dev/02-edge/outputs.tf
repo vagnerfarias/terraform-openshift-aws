@@ -1,5 +1,5 @@
-output "private_hosted_zone_id" {
-  value = module.edge.private_hosted_zone_id
+output "private_dns_zone_id" {
+  value = module.edge.private_dns_zone_id
 }
 
 output "api_server_dns_name" {
