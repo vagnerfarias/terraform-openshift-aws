@@ -5,6 +5,8 @@
   become: true
   vars_files:
     - ../overrides.yml
+  vars:
+    terraform_live_dir: "{{ playbook_dir }}/../live/aws/dev"
   tags:
     - ocp_prepare
 
@@ -103,7 +105,7 @@
       become: false
       delegate_to: localhost
       ansible.builtin.copy:
-        dest: "{{ playbook_dir }}/../live/dev/00-config/generated.auto.tfvars"
+        dest: "{{ terraform_live_dir }}/00-config/generated.auto.tfvars"
         mode: "0644"
         content: |
           infrastructure_name   = "{{ ocp_infra_id }}"
@@ -121,4 +123,4 @@
       ansible.builtin.command:
         cmd: terraform apply -auto-approve
       args:
-        chdir: "{{ playbook_dir }}/../live/dev/00-config"
+        chdir: "{{ playbook_dir }}/../live/aws/dev/00-config"

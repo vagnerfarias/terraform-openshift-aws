@@ -117,7 +117,7 @@
 - name: Create terraform auto.tfvars locally
   delegate_to: localhost
   ansible.builtin.copy:
-    dest: "{{ playbook_dir }}/../live/dev/dev.auto.tfvars"
+    dest: "{{ terraform_live_dir }}/dev.auto.tfvars"
     mode: "0644"
     content: |
       infrastructure_name = "{{ ocp_infra_id }}"
