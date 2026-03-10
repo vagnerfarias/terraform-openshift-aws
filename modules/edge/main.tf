@@ -173,6 +173,8 @@ resource "aws_route53_record" "private_api_int" {
   }
 }
 
+
+# LB for ingress 
 locals {
   apps_lb_name = substr(replace("${var.infrastructure_name}-apps", "/[^a-zA-Z0-9-]/", "-"), 0, 32)
 }
@@ -196,11 +198,15 @@ resource "aws_lb_target_group" "apps_http_80" {
   target_type = "ip"
 
   health_check {
-    protocol            = "TCP"
-    port                = "80"
+    enabled             = true
+    protocol            = "HTTP"
+    port                = "1936"
+    path                = "/healthz/ready"
     interval            = 10
+    timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 2
+    matcher             = "200"
   }
 
   tags = local.common_tags
@@ -214,11 +220,15 @@ resource "aws_lb_target_group" "apps_https_443" {
   target_type = "ip"
 
   health_check {
-    protocol            = "TCP"
-    port                = "443"
+    enabled             = true
+    protocol            = "HTTP"
+    port                = "1936"
+    path                = "/healthz/ready"
     interval            = 10
+    timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 2
+    matcher             = "200"
   }
 
   tags = local.common_tags
@@ -248,6 +258,18 @@ resource "aws_lb_listener" "apps_443" {
 
 resource "aws_route53_record" "public_apps_wildcard" {
   zone_id = var.public_hosted_zone_id
+  name    = "*.apps.${var.cluster_name}.${var.base_domain}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.apps.dns_name
+    zone_id                = aws_lb.apps.zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "internal_apps_wildcard" {
+  zone_id = aws_route53_zone.private_cluster_zone.zone_id
   name    = "*.apps.${var.cluster_name}.${var.base_domain}"
   type    = "A"
 

@@ -471,6 +471,33 @@ resource "aws_vpc_security_group_ingress_rule" "worker_ingress_udp_master" {
   description                  = "Kubernetes ingress services"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "worker_ingress_http_public" {
+  security_group_id = aws_security_group.worker.id
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Ingress HTTP from clients"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "worker_ingress_https_public" {
+  security_group_id = aws_security_group.worker.id
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Ingress HTTPS from clients"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "worker_ingress_healthcheck" {
+  security_group_id = aws_security_group.worker.id
+  ip_protocol       = "tcp"
+  from_port         = 1936
+  to_port           = 1936
+  cidr_ipv4         = var.vpc_cidr
+  description       = "Ingress router health checks from within VPC"
+}
+
 resource "aws_iam_role" "master" {
   name = "${var.infrastructure_name}-master-role"
 

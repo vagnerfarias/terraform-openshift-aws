@@ -5,7 +5,7 @@ compute:
 - architecture: {{ ocp_arch }}
   hyperthreading: Enabled
   name: worker
-  replicas: 0 # {{ ocp_worker_count }}
+  replicas: 2 # {{ ocp_worker_count }}
 controlPlane:
   architecture: {{ ocp_arch }}
   hyperthreading: Enabled
