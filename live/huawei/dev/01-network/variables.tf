@@ -1,25 +1,51 @@
 variable "vpc_cidr" {
-  type        = string
-  description = "CIDR for the Huawei Cloud VPC."
+  type = string
 }
 
-variable "public_subnet_cidr" {
-  type        = string
-  description = "CIDR for the public subnet."
+variable "availability_zone_count" {
+  type = number
 }
 
-variable "private_subnet_cidr" {
-  type        = string
-  description = "CIDR for the private subnet."
+variable "subnet_bits" {
+  type = number
 }
 
-variable "availability_zone" {
-  type        = string
-  description = "Huawei Cloud availability zone."
+variable "nat_gateway_spec" {
+  type    = string
+  default = "1"
+}
+
+variable "nat_eip_bandwidth_size" {
+  type    = number
+  default = 100
+}
+
+variable "nat_eip_bandwidth_charge_mode" {
+  type    = string
+  default = "traffic"
+}
+
+variable "primary_dns" {
+  type    = string
+  default = null
+}
+
+variable "secondary_dns" {
+  type    = string
+  default = null
+}
+
+variable "dns_list" {
+  type    = list(string)
+  default = null
+}
+
+variable "dhcp_enable" {
+  type    = bool
+  default = true
 }
 
 variable "tags" {
-  type        = map(string)
-  default     = {}
-  description = "Tags applied where supported."
+  type    = map(string)
+  default = {}
 }
