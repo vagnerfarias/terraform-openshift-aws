@@ -1,0 +1,14 @@
+instance_count   = 3
+flavor_id        = "c6.2xlarge.2"
+system_disk_size = 120
+system_disk_type = "SSD"
+
+admin_pass = ""
+key_pair   = ""
+
+metadata = {}
+
+tags = {
+  Project = "ocp-huawei"
+  Env     = "dev"
+}
