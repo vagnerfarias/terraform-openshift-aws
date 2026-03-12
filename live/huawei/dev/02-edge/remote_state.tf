@@ -13,11 +13,3 @@ data "terraform_remote_state" "network" {
     path = "../01-network/terraform.tfstate"
   }
 }
-
-data "terraform_remote_state" "edge" {
-  backend = "local"
-
-  config = {
-    path = "../02-edge/terraform.tfstate"
-  }
-}

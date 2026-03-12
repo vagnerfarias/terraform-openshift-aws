@@ -1,0 +1,15 @@
+manage_public_dns  = true
+manage_private_dns = true
+
+private_dns_zone_id = ""
+
+public_dns_ttl  = 300
+private_dns_ttl = 300
+
+public_eip_bandwidth_size        = 100
+public_eip_bandwidth_charge_mode = "traffic"
+
+tags = {
+  Project = "ocp-huawei"
+  Env     = "dev"
+}
