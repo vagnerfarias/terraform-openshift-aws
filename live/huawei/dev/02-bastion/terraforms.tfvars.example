@@ -1,0 +1,19 @@
+image_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+flavor_id = "s6.large.2"
+
+system_disk_size = 40
+system_disk_type = "SSD"
+
+key_pair   = ""
+admin_pass = ""
+user_data  = ""
+
+public_eip_bandwidth_size        = 20
+public_eip_bandwidth_charge_mode = "traffic"
+
+metadata = {}
+
+tags = {
+  Project = "ocp-huawei"
+  Env     = "dev"
+}
